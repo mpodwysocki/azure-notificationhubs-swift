@@ -24,41 +24,54 @@
 //
 // --------------------------------------------------------------------------
 
-import Foundation
 import CommonCrypto
+import Foundation
 
 public struct TokenProvider {
     private let keyName: String
     private let keyValue: String
-    
+
     public init(keyName: String, keyValue: String) {
         self.keyName = keyName
         self.keyValue = keyValue
     }
-    
+
     public func generateSasToken(audience: URL) -> String {
         let interval = NSDate().timeIntervalSince1970
         let timeToExpireinMins = 60.0
         let totalSeconds = interval + timeToExpireinMins * 60.0
         let expiresOn = String(format: "%.f", totalSeconds)
-        let audienceString = audience.absoluteString.addingPercentEncoding(withAllowedCharacters: .azureUrlQueryAllowed)!.lowercased()
+        let audienceString = audience.absoluteString.addingPercentEncoding(
+            withAllowedCharacters: .azureUrlQueryAllowed
+        )!.lowercased()
         let stringToSign = String(format: "%@\n%@", audienceString, expiresOn)
-        
-        let signature = self.signString(str: stringToSign, withKey: self.keyValue).addingPercentEncoding(withAllowedCharacters: .azureUrlQueryAllowed)!
-        
-        return String(format: "SharedAccessSignature sr=%@&sig=%@&se=%@&skn=%@", audienceString, signature, expiresOn, self.keyName)
+
+        let signature = self.signString(str: stringToSign, withKey: self.keyValue)
+            .addingPercentEncoding(withAllowedCharacters: .azureUrlQueryAllowed)!
+
+        return String(
+            format: "SharedAccessSignature sr=%@&sig=%@&se=%@&skn=%@",
+            audienceString,
+            signature,
+            expiresOn,
+            self.keyName
+        )
     }
-    
+
     private func signString(str: String, withKey key: String) -> String {
         let cKey = key.data(using: .ascii)!
         let cData = str.data(using: .utf8)!
         let hmac = cData.hmac(algorithm: .sha256, key: cKey)
         return hmac.base64EncodedString()
     }
-    
+
 }
 
 extension CharacterSet {
-    static let azureUrlQueryAllowed = urlQueryAllowed.subtracting(.init(charactersIn: "!*'();:@&=+$,/?"))
-    static let azureUrlPathAllowed = urlPathAllowed.subtracting(.init(charactersIn: "!*'()@&=+$,/:"))
+    static let azureUrlQueryAllowed = urlQueryAllowed.subtracting(
+        .init(charactersIn: "!*'();:@&=+$,/?")
+    )
+    static let azureUrlPathAllowed = urlPathAllowed.subtracting(
+        .init(charactersIn: "!*'()@&=+$,/:")
+    )
 }

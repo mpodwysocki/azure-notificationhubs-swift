@@ -26,7 +26,7 @@
 
 public struct NotificationRequest {
     var message: String?
-    var headers: [String : String]?
+    var headers: [String: String]?
     var contentType: String
     var platform: String
 }
@@ -35,13 +35,24 @@ extension NotificationRequest {
     public static func createAppleRequest() -> NotificationRequest {
         return NotificationRequest(contentType: "application/json;charset=utf-8", platform: "apple")
     }
-    
+
     public static func createAppleRequest(message: String) -> NotificationRequest {
-        return NotificationRequest(message: message, contentType: "application/json;charset=utf-8", platform: "apple")
+        return NotificationRequest(
+            message: message,
+            contentType: "application/json;charset=utf-8",
+            platform: "apple"
+        )
     }
-    
-    public static func createAppleRequest(message: String, headers: [String : String]) -> NotificationRequest {
-        return NotificationRequest(message: message, headers: headers, contentType: "application/json;charset=utf-8", platform: "apple")
+
+    public static func createAppleRequest(message: String, headers: [String: String])
+        -> NotificationRequest
+    {
+        return NotificationRequest(
+            message: message,
+            headers: headers,
+            contentType: "application/json;charset=utf-8",
+            platform: "apple"
+        )
     }
 }
 
