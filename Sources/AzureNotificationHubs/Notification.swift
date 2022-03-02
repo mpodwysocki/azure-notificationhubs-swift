@@ -24,20 +24,29 @@
 //
 // --------------------------------------------------------------------------
 
-import XCTest
-@testable import AzureNotificationHubs
+public struct NotificationRequest {
+    var message: String?
+    var headers: [String : String]?
+    var contentType: String
+    var platform: String
+}
 
-final class TokenProviderTests: XCTestCase {
-    func testGenerateSasToken() throws {
-        let endpoint = URL(string: "sb://sdk-sample-namespace.servicebus.windows.net/")!
-        let keyName = "DefaultFullSharedAccessSignature"
-        let keyValue = "VWVIRqRCEy34k7obV9tApO7sYcFQ1+5LFglbM8f79CA="
-        
-        let tokenProvider = TokenProvider(keyName: keyName, keyValue: keyValue)
-        
-        let token = tokenProvider.generateSasToken(audience: endpoint)
-        
-        XCTAssert(token.contains("sdk-sample-namespace.servicebus.windows.net"))
-        XCTAssert(token.contains("DefaultFullSharedAccessSignature"))
+extension NotificationRequest {
+    public static func createAppleRequest() -> NotificationRequest {
+        return NotificationRequest(contentType: "application/json;charset=utf-8", platform: "apple")
     }
+    
+    public static func createAppleRequest(message: String) -> NotificationRequest {
+        return NotificationRequest(message: message, contentType: "application/json;charset=utf-8", platform: "apple")
+    }
+    
+    public static func createAppleRequest(message: String, headers: [String : String]) -> NotificationRequest {
+        return NotificationRequest(message: message, headers: headers, contentType: "application/json;charset=utf-8", platform: "apple")
+    }
+}
+
+public struct NotificationResponse {
+    let location: String
+    let correlationId: String
+    let trackingId: String
 }

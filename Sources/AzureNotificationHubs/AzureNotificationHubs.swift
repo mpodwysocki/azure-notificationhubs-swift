@@ -26,6 +26,7 @@
 
 import Foundation
 
+@available(macOS 12.0, *)
 public struct NotificationHub {
     private let hubName: String
     private let baseUri: URL
@@ -53,5 +54,38 @@ public struct NotificationHub {
         self.tokenProvider = TokenProvider.init(keyName: keyName, keyValue: keyValue)
     }
     
-    
+    public func sendDirectNotification(deviceHandle: String, withRequest request:NotificationRequest) async throws -> NotificationResponse {
+        let currentUrl = String(format: "%@%@/messages/api-version=2015-01&direct=true", self.baseUri.absoluteString.replacingOccurrences(of: "sb://", with: "https"), self.hubName)
+        let targetUrl = URL(string: currentUrl)!
+        var location = ""
+        var correlationId = ""
+        var trackingId = ""
+        
+        let authorization = tokenProvider.generateSasToken(audience: self.baseUri)
+        
+        var req = URLRequest(url: targetUrl)
+        req.httpMethod = "POST"
+        
+        if request.headers != nil {
+            for (headerName, headerValue) in request.headers! {
+                req.setValue(headerValue, forHTTPHeaderField: headerName)
+            }
+        }
+        
+        req.setValue(authorization, forHTTPHeaderField: "Authorization")
+        req.setValue(request.platform, forHTTPHeaderField: "ServiceBusNotification-Format")
+        req.setValue(request.contentType, forHTTPHeaderField: "Content-Type")
+        req.setValue(deviceHandle, forHTTPHeaderField: "ServiceBusNotification-DeviceHandle")
+        
+        let session = URLSession.shared
+        let (_, response) = try await session.data(for: req)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            trackingId = httpResponse.value(forHTTPHeaderField: "TrackingId") ?? ""
+            correlationId = httpResponse.value(forHTTPHeaderField: "x-ms-correlation-request-id") ?? ""
+            location = httpResponse.value(forHTTPHeaderField: "Location") ?? ""
+        }
+        
+        return NotificationResponse(location: location, correlationId: correlationId, trackingId: trackingId)
+    }
 }

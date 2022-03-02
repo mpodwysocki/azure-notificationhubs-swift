@@ -50,7 +50,7 @@ public struct TokenProvider {
     }
     
     private func signString(str: String, withKey key: String) -> String {
-        let cKey = Data(base64Encoded: key)!
+        let cKey = key.data(using: .ascii)!
         let cData = str.data(using: .utf8)!
         let hmac = cData.hmac(algorithm: .sha256, key: cKey)
         return hmac.base64EncodedString()
